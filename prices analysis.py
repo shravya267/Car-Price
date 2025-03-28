@@ -1,0 +1,42 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+file_path = r"C:\Users\HP\OneDrive\Desktop\data analytics\car price analysis\CarPrice_Assignment.csv"
+df = pd.read_csv(file_path)
+print(df.head())
+print(df.info()) 
+print(df.describe()) 
+null_counts = df.isnull().sum()
+print("Null Value Counts:\n", null_counts[null_counts > 0])
+threshold = 0.4  
+df = df.dropna(thresh=df.shape[0] * (1 - threshold), axis=1)
+df = df.dropna()
+df = df.drop(columns=['car_ID'], errors='ignore')
+df['carCompany'] = df['CarName'].apply(lambda x: x.split(" ")[0].lower())
+df['carCompany'] = df['carCompany'].replace({'vw': 'volkswagen', 'vokswagen': 'volkswagen'})
+df['car_stability'] = df['wheelbase'] / df['carlength']
+numeric_df = df.select_dtypes(include=['number'])
+plt.figure(figsize=(12, 6))
+sns.heatmap(numeric_df.corr(), annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Feature Correlation Heatmap')
+plt.show()
+df = df.drop(columns=['carlength', 'carwidth', 'curbweight', 'highwaympg', 'car_stability'], errors='ignore')
+df = pd.get_dummies(df, drop_first=True)
+plt.figure(figsize=(8, 5))
+sns.histplot(df['price'], bins=30, kde=True, color='blue')
+plt.title('Car Price Distribution')
+plt.xlabel('Price')
+plt.ylabel('Count')
+plt.show()
+plt.figure(figsize=(12, 6))
+df.groupby('carCompany')['price'].mean().sort_values().plot(kind='bar', color='green')
+plt.title('Average Car Price by Company')
+plt.xlabel('Car Company')
+plt.ylabel('Average Price')
+plt.xticks(rotation=45)
+plt.show()
+print("\n### Insights from Data Analysis ###")
+print("- Car prices vary significantly by company.")
+print("- Certain variables are highly correlated, allowing us to drop redundant columns.")
+print("- The price distribution shows a right-skewed pattern, indicating some expensive outliers.")
